@@ -100,8 +100,8 @@ function App() {
   const finalCountryArr = countryArr.slice((page - 1) * showPerPage, page * showPerPage);
 
   return (
-    <div className='min-h-screen'>
-      <div className=' container '>
+    <div className='min-h-screen pb-12'>
+      <div className=' container'>
         <h1 className='py-2 text-2xl font-semibold'>Country list</h1>
         <div className='flex justify-between'>
           <div className=''>
@@ -132,7 +132,7 @@ function App() {
           ))}
         </ul>{' '}
       </div>
-      <div className='bg-gray-300 flex justify-between p-2 fixed bottom-0 left-0 right-0 container'>
+      <div className='bg-gray-300 flex justify-between p-2 fixed bottom-0 left-0 right-0 container rounded-t-lg'>
         <div className='flex gap-2'>
           <Button onClick={pageUp} children='page Up' />
           <div className='flex gap-2'>
