@@ -14,9 +14,13 @@ function App() {
   const [countries, setCountries] = useState([]);
   const [ascendingSort, setAscendingSort] = useState(true);
   const [countriesSmall, setCountriesSmall] = useState(false);
+  const [oceaniaCountries, setOceaniaCountries] = useState(false);
+  const [page, setPage] = useState(1);
+  const [showPerPage, setShowPerPage] = useState(5);
 
   // console.log('countries ===', countries);
-  console.log('countriesSmall ===', countriesSmall);
+  // console.log('countriesSmall ===', countriesSmall);
+  console.log('page ===', page);
 
   useEffect(() => {
     getCountryList();
@@ -30,47 +34,90 @@ function App() {
       .catch((error) => console.log(error));
   }
 
+  function setPageCount(number: string) {
+    console.log('number ===', number);
+    setPage(+number);
+  }
+
   function sortCountries() {
     setAscendingSort(!ascendingSort);
   }
 
   function filterCountries() {
     console.log('filterCountries');
-
+    setOceaniaCountries(false);
     setCountriesSmall(!countriesSmall);
+  }
+
+  function filterOceania() {
+    console.log('filterOceania');
+    setCountriesSmall(false);
+    setOceaniaCountries(!oceaniaCountries);
+  }
+  function pageUp() {
+    if (page < countries.length / showPerPage) {
+      setPage(page + 1);
+    } else {
+      return;
+    }
+  }
+  function pageDown() {
+    if (page > 1) {
+      setPage(page - 1);
+    } else {
+      return;
+    }
   }
   const countryCopy = [...countries];
 
+  let countryArr;
+
   if (ascendingSort) {
-    countryCopy.sort((a: CountryType, b: CountryType) => a.name.localeCompare(b.name));
+    countryArr = countryCopy.sort((a: CountryType, b: CountryType) => a.name.localeCompare(b.name));
   } else {
-    countryCopy.sort((a: CountryType, b: CountryType) => b.name.localeCompare(a.name));
+    countryArr = countryCopy.sort((a: CountryType, b: CountryType) => b.name.localeCompare(a.name));
   }
 
   if (countriesSmall) {
-    countryCopy.filter((country: CountryType) => country.area < 65300);
+    countryArr = countryCopy.filter((country: CountryType) => country.area < 65300);
     console.log('countryCopy ===', countryCopy);
-  } else {
-    countryCopy.filter((country: CountryType) => country.area > 1);
-    console.log('countryCopy ===', countryCopy);
+  } else if (oceaniaCountries) {
+    countryArr = countryCopy.filter((country: CountryType) => country.region === 'Oceania');
   }
 
+  const finalCountryArr = countryArr.slice((page - 1) * showPerPage, page * showPerPage);
+
   return (
-    <div className='bg-red-200'>
-      <div className=' container'>
-        <h1>Country list</h1>
+    <div className='bg-red-200 h-full'>
+      <div className=' container '>
+        <h1 className='py-2 text-2xl font-semibold'>Country list</h1>
         <div className='flex justify-between'>
           <div>
             <Button onClick={sortCountries}>Sort by name</Button>
             <Button onClick={filterCountries}>Smaller than Lithuania</Button>
+            <Button onClick={filterOceania}>countries in Oceania</Button>
           </div>
           <Button onClick={() => console.log('Button clicked')}>Click me</Button>
         </div>
         <ul>
-          {countryCopy.map((country: CountryType) => (
+          {finalCountryArr.map((country: CountryType) => (
             <SingleCountry country={country} key={country.name} />
           ))}
-        </ul>
+        </ul>{' '}
+        <div className='bg-gray-500'>
+          <Button onClick={pageDown} children='page Down' />
+          <Button onClick={pageUp} children='page Up' />
+          <input
+            type='number'
+            value={page}
+            onChange={(e) => {
+              setPageCount(e.target.value);
+            }}
+          />
+          <Button onClick={() => setShowPerPage(5)} children='5' />
+          <Button onClick={() => setShowPerPage(8)} children='8' />
+          <Button onClick={() => setShowPerPage(10)} children='10' />
+        </div>
       </div>
     </div>
   );
