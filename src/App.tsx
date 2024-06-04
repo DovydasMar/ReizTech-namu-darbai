@@ -3,6 +3,8 @@ import axios from 'axios';
 import Button from './components/Button';
 import { useEffect, useState } from 'react';
 import SingleCountry from './components/SingleCountry';
+import loadingObj from './placeholder/LoadingObj';
+import Placeholder from './placeholder/Placeholder';
 
 type CountryType = {
   name: string;
@@ -98,7 +100,7 @@ function App() {
   const finalCountryArr = countryArr.slice((page - 1) * showPerPage, page * showPerPage);
 
   return (
-    <div className='vh-100'>
+    <div className='min-h-screen'>
       <div className=' container '>
         <h1 className='py-2 text-2xl font-semibold'>Country list</h1>
         <div className='flex justify-between'>
@@ -121,37 +123,38 @@ function App() {
         </div>
         <ul>
           {/* lazy loading */}
-          {isLoading && <p>Loading...</p>}
+          {isLoading && <p>loading...</p>}
+          {isLoading && loadingObj.map((obj) => <Placeholder key={obj.id} />)}
           {/* if API doesn't work it will show this message just need to restart page, until it starts working again */}
           {errOnFetch && <p>Something went wrong, please restart this page</p>}
           {finalCountryArr.map((country: CountryType) => (
             <SingleCountry country={country} key={country.name} />
           ))}
         </ul>{' '}
-        <div className='bg-gray-300 flex justify-between p-2'>
+      </div>
+      <div className='bg-gray-300 flex justify-between p-2 fixed bottom-0 left-0 right-0 container'>
+        <div className='flex gap-2'>
+          <Button onClick={pageUp} children='page Up' />
           <div className='flex gap-2'>
-            <Button onClick={pageUp} children='page Up' />
-            <div className='flex gap-2'>
-              <input
-                className='w-14 px-1 mt-1 h-8 border-2 border-black'
-                type='number'
-                min={1}
-                step={1}
-                value={page}
-                onChange={(e) => {
-                  setPageCount(e.target.value);
-                }}
-              />
-              <p className='w-full px-1 mt-2'>/ {Math.ceil(countryArr.length / showPerPage)}</p>
-            </div>
-            <Button onClick={pageDown} children='page Down' />
+            <input
+              className='w-14 px-1 mt-1 h-8 border-2 border-black'
+              type='number'
+              min={1}
+              step={1}
+              value={page}
+              onChange={(e) => {
+                setPageCount(e.target.value);
+              }}
+            />
+            <p className='w-full px-1 mt-2'>/ {Math.ceil(countryArr.length / showPerPage)}</p>
           </div>
-          <div className='flex justify-between gap-2'>
-            <p className='mt-2'>Show per page:</p>
-            <Button onClick={() => setShowPerPage(1)} children='1' />
-            <Button onClick={() => setShowPerPage(5)} children='5' />
-            <Button onClick={() => setShowPerPage(10)} children='10' />
-          </div>
+          <Button onClick={pageDown} children='page Down' />
+        </div>
+        <div className='flex justify-between gap-2'>
+          <p className='mt-2'>Show per page:</p>
+          <Button onClick={() => setShowPerPage(1)} children='1' />
+          <Button onClick={() => setShowPerPage(5)} children='5' />
+          <Button onClick={() => setShowPerPage(10)} children='10' />
         </div>
       </div>
     </div>
