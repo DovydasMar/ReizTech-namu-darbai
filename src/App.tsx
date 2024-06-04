@@ -17,25 +17,32 @@ function App() {
   const [oceaniaCountries, setOceaniaCountries] = useState(false);
   const [page, setPage] = useState(1);
   const [showPerPage, setShowPerPage] = useState(5);
-
-  // console.log('countries ===', countries);
-  // console.log('countriesSmall ===', countriesSmall);
-  console.log('page ===', page);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errOnFetch, setErrOnFetch] = useState(false);
 
   useEffect(() => {
     getCountryList();
   }, []);
   function getCountryList() {
+    setIsLoading(true);
+    setErrOnFetch(false);
     axios
       .get('https://restcountries.com/v2/all?fields=name,region,area', { timeout: 15000 })
       .then((response) => {
         setCountries(response.data);
+        setErrOnFetch(false);
       })
-      .catch((error) => console.log(error));
+      .catch((error) => {
+        console.warn(error);
+        setErrOnFetch(true);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   }
 
   function setPageCount(number: string) {
-    console.log('number ===', number);
+    // number comes in as a string from input, so i converted it to a number
     setPage(+number);
   }
 
@@ -44,13 +51,13 @@ function App() {
   }
 
   function filterCountries() {
-    console.log('filterCountries');
+    // filtering smaller countries than Lithuania
     setOceaniaCountries(false);
     setCountriesSmall(!countriesSmall);
   }
 
   function filterOceania() {
-    console.log('filterOceania');
+    // filtering countries in Oceania
     setCountriesSmall(false);
     setOceaniaCountries(!oceaniaCountries);
   }
@@ -68,8 +75,11 @@ function App() {
       return;
     }
   }
+
+  // creating a shallow copy of the countries array to avoid changing the original array
   const countryCopy = [...countries];
 
+  // creating a new array of countries to be changed based on the filters
   let countryArr;
 
   if (ascendingSort) {
@@ -80,43 +90,68 @@ function App() {
 
   if (countriesSmall) {
     countryArr = countryCopy.filter((country: CountryType) => country.area < 65300);
-    console.log('countryCopy ===', countryCopy);
   } else if (oceaniaCountries) {
     countryArr = countryCopy.filter((country: CountryType) => country.region === 'Oceania');
   }
 
+  // creating another array for pagination
   const finalCountryArr = countryArr.slice((page - 1) * showPerPage, page * showPerPage);
 
   return (
-    <div className='bg-red-200 h-full'>
+    <div className='vh-100'>
       <div className=' container '>
         <h1 className='py-2 text-2xl font-semibold'>Country list</h1>
         <div className='flex justify-between'>
-          <div>
-            <Button onClick={sortCountries}>Sort by name</Button>
-            <Button onClick={filterCountries}>Smaller than Lithuania</Button>
-            <Button onClick={filterOceania}>countries in Oceania</Button>
+          <div className=''>
+            <Button onClick={sortCountries}>
+              {/* making z-a and a-z sort dynamic changing */}
+              {ascendingSort ? 'Sort by name Z-A' : 'Sort by name A-Z'}
+            </Button>
           </div>
-          <Button onClick={() => console.log('Button clicked')}>Click me</Button>
+          <div className='flex gap-2'>
+            <Button onClick={filterCountries}>
+              {/* making dynamic changing of the text */}
+              {countriesSmall ? 'All countries' : 'Smaller than Lithuania'}
+            </Button>
+            <Button onClick={filterOceania}>
+              {/* making dynamic changing of the text */}
+              {oceaniaCountries ? 'All countries' : 'Countries in Oceania'}
+            </Button>
+          </div>
         </div>
         <ul>
+          {/* lazy loading */}
+          {isLoading && <p>Loading...</p>}
+          {/* if API doesn't work it will show this message just need to restart page, until it starts working again */}
+          {errOnFetch && <p>Something went wrong, please restart this page</p>}
           {finalCountryArr.map((country: CountryType) => (
             <SingleCountry country={country} key={country.name} />
           ))}
         </ul>{' '}
-        <div className='bg-gray-500'>
-          <Button onClick={pageDown} children='page Down' />
-          <Button onClick={pageUp} children='page Up' />
-          <input
-            type='number'
-            value={page}
-            onChange={(e) => {
-              setPageCount(e.target.value);
-            }}
-          />
-          <Button onClick={() => setShowPerPage(5)} children='5' />
-          <Button onClick={() => setShowPerPage(8)} children='8' />
-          <Button onClick={() => setShowPerPage(10)} children='10' />
+        <div className='bg-gray-300 flex justify-between p-2'>
+          <div className='flex gap-2'>
+            <Button onClick={pageUp} children='page Up' />
+            <div className='flex gap-2'>
+              <input
+                className='w-14 px-1 mt-1 h-8 border-2 border-black'
+                type='number'
+                min={1}
+                step={1}
+                value={page}
+                onChange={(e) => {
+                  setPageCount(e.target.value);
+                }}
+              />
+              <p className='w-full px-1 mt-2'>/ {Math.ceil(countryArr.length / showPerPage)}</p>
+            </div>
+            <Button onClick={pageDown} children='page Down' />
+          </div>
+          <div className='flex justify-between gap-2'>
+            <p className='mt-2'>Show per page:</p>
+            <Button onClick={() => setShowPerPage(1)} children='1' />
+            <Button onClick={() => setShowPerPage(5)} children='5' />
+            <Button onClick={() => setShowPerPage(10)} children='10' />
+          </div>
         </div>
       </div>
     </div>
